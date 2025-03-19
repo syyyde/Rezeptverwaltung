@@ -81,23 +81,41 @@ async function rezeptZurEinkaufslisteHinzufügen(rezeptName) {
 
 // Rezept aus Einkaufsliste entfernen
 async function rezeptAusEinkaufslisteEntfernen(rezeptName) {
-    if (verwendeteRezepte[rezeptName]) {
-        verwendeteRezepte[rezeptName] -= 1;
-
-        if (verwendeteRezepte[rezeptName] <= 0) {
-            delete verwendeteRezepte[rezeptName];
-            await supabase.from('einkaufsliste_rezepte').delete().eq('rezeptname', rezeptName);
-        } else {
-            await supabase.from('einkaufsliste_rezepte')
-                .update({ anzahl: verwendeteRezepte[rezeptName] })
-                .eq('rezeptname', rezeptName);
-        }
-
-        einkaufsliste = berechneEinkaufsliste();
-        zeigeBenachrichtigung(`"${rezeptName}" wurde entfernt!`);
-        navigate('einkaufsliste'); // 🔹 Ansicht aktualisieren
+    if (!verwendeteRezepte[rezeptName]) {
+        console.warn(`⚠ Rezept "${rezeptName}" ist nicht in der Einkaufsliste.`);
+        return;
     }
+
+    verwendeteRezepte[rezeptName] -= 1;
+
+    let error;
+    if (verwendeteRezepte[rezeptName] <= 0) {
+        delete verwendeteRezepte[rezeptName];
+
+        // 🔥 Rezept aus Supabase entfernen
+        ({ error } = await supabase
+            .from('einkaufsliste_rezepte')
+            .delete()
+            .eq('rezeptname', rezeptName));
+    } else {
+        // 🔥 Rezept-Count in Supabase aktualisieren
+        ({ error } = await supabase
+            .from('einkaufsliste_rezepte')
+            .update({ anzahl: verwendeteRezepte[rezeptName] })
+            .eq('rezeptname', rezeptName));
+    }
+
+    if (error) {
+        console.error("❌ Fehler beim Entfernen aus Supabase:", error);
+        zeigeBenachrichtigung("❌ Fehler beim Entfernen!");
+        return;
+    }
+
+    einkaufsliste = berechneEinkaufsliste(); // ✅ Einkaufsliste aktualisieren
+    zeigeBenachrichtigung(`"${rezeptName}" wurde entfernt!`);
+    navigate('einkaufsliste');
 }
+
 
 // Funktion mit "Einkaufsliste leeren"-Button verknüpfen
 async function einkaufslisteLeeren() {
