@@ -7,10 +7,36 @@ const supabaseUrl = "https://crlccetkaainclufdzqh.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybGNjZXRrYWFpbmNsdWZkenFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzODcxODIsImV4cCI6MjA1Nzk2MzE4Mn0.u8NCm4V_z_iQowm84uNn97BZK67fS7WNMx6ARA1m0Ks"; // Setze hier deinen Key ein
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+// Rezepte aus Supabase laden
 async function ladeRezepte() {
     let { data, error } = await supabase.from('rezepte').select('*');
     if (error) console.error("Fehler beim Laden der Rezepte:", error);
-    else rezepte = data || []; // JSON wird direkt als Objekt geladen
+    else rezepte = data || [];
+}
+
+// Hinzugefügte Rezepte aus Supabase laden
+async function ladeVerwendeteRezepte() {
+    let { data, error } = await supabase.from('einkaufsliste_rezepte').select('*');
+    if (error) console.error("Fehler beim Laden der Einkaufsliste:", error);
+    else verwendeteRezepte = data.reduce((acc, item) => {
+        acc[item.rezeptname] = item.anzahl;
+        return acc;
+    }, {});
+}
+
+// Einkaufsliste berechnen
+function berechneEinkaufsliste() {
+    let einkaufsliste = {};
+    for (const [rezeptName, anzahl] of Object.entries(verwendeteRezepte)) {
+        const rezept = rezepte.find(r => r.name === rezeptName);
+        if (rezept) {
+            rezept.zutaten.forEach(({ name, menge, einheit }) => {
+                if (!einkaufsliste[name]) einkaufsliste[name] = { menge: 0, einheit };
+                einkaufsliste[name].menge += menge * anzahl;
+            });
+        }
+    }
+    return einkaufsliste;
 }
 
 async function speichereRezepte() {
@@ -45,50 +71,47 @@ async function rezeptSpeichern(event) {
     navigate('rezepte');
 }
 
-// Einkaufsliste aus der Datenbank laden
-async function ladeEinkaufsliste() {
-    let { data, error } = await supabase.from('einkaufsliste').select('*');
-    if (error) console.error("Fehler beim Laden:", error);
-    else einkaufsliste = data.reduce((acc, item) => {
-        acc[item.name] = { menge: item.menge, einheit: item.einheit };
-        return acc;
-    }, {});
-    navigate('einkaufsliste');
+// Rezept zur Einkaufsliste hinzufügen
+async function rezeptZurEinkaufslisteHinzufügen(rezeptName) {
+    verwendeteRezepte[rezeptName] = (verwendeteRezepte[rezeptName] || 0) + 1;
+    await supabase.from('einkaufsliste_rezepte').upsert({ rezeptname: rezeptName, anzahl: verwendeteRezepte[rezeptName] });
+    
+    einkaufsliste = berechneEinkaufsliste(); // ✅ Einkaufsliste aktualisieren
+    zeigeBenachrichtigung(`"${rezeptName}" wurde zur Einkaufsliste hinzugefügt!`);
 }
 
-// Einkaufsliste speichern
-async function speichereEinkaufsliste() {
-    await supabase.from('einkaufsliste').delete().neq('id', 0); // Alte Liste löschen
-    const daten = Object.entries(einkaufsliste).map(([name, details]) => ({
-        name,
-        menge: details.menge,
-        einheit: details.einheit
-    }));
-    await supabase.from('einkaufsliste').insert(daten);
+// Rezept aus Einkaufsliste entfernen
+async function rezeptAusEinkaufslisteEntfernen(rezeptName) {
+    if (verwendeteRezepte[rezeptName]) {
+        verwendeteRezepte[rezeptName] -= 1;
+        if (verwendeteRezepte[rezeptName] <= 0) {
+            delete verwendeteRezepte[rezeptName];
+            await supabase.from('einkaufsliste_rezepte').delete().eq('rezeptname', rezeptName);
+        } else {
+            await supabase.from('einkaufsliste_rezepte').update({ anzahl: verwendeteRezepte[rezeptName] }).eq('rezeptname', rezeptName);
+        }
+        
+        einkaufsliste = berechneEinkaufsliste(); // ✅ Einkaufsliste nach Entfernung aktualisieren
+        zeigeBenachrichtigung(`"${rezeptName}" wurde entfernt!`);
+    }
 }
 
 // Funktion mit "Einkaufsliste leeren"-Button verknüpfen
 async function einkaufslisteLeeren() {
     if (!confirm("Bist du sicher, dass du die gesamte Einkaufsliste löschen möchtest?")) return;
-    await supabase.from('einkaufsliste').delete().neq('id', 0);
-    einkaufsliste = {};
-    speichereDaten();
+    await supabase.from('einkaufsliste_rezepte').delete().neq('id', 0); // ❌ Hier war noch die alte Tabelle "einkaufsliste"
+    
+    verwendeteRezepte = {}; // ✅ Verwendete Rezepte leeren
+    einkaufsliste = {}; // ✅ Einkaufsliste zurücksetzen
     zeigeBenachrichtigung("Die Einkaufsliste wurde geleert!");
     navigate('einkaufsliste');
 }
 
-// Funktion zum Laden der gespeicherten Daten
 async function ladeDaten() {
     await ladeRezepte();
-    await ladeEinkaufsliste();
-    navigate('rezepte');
-}
-
-// Funktion zum Speichern der Daten
-function speichereDaten() {
-    localStorage.setItem("rezepte", JSON.stringify(rezepte));
-    localStorage.setItem("einkaufsliste", JSON.stringify(einkaufsliste));
-    localStorage.setItem("verwendeteRezepte", JSON.stringify(verwendeteRezepte));
+    await ladeVerwendeteRezepte();
+    einkaufsliste = berechneEinkaufsliste(); // ✅ Einkaufsliste direkt berechnen!
+    navigate('rezepte'); 
 }
 
 // Funktion für Toast
