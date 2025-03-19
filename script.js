@@ -3,6 +3,27 @@ let rezepte = []; // Liste aller Rezepte
 let einkaufsliste = {}; // Konsolidierte Einkaufsliste (nach Zutaten)
 let verwendeteRezepte = {}; // Verknüpfte Rezepte mit Anzahl (z. B. {"Nudelauflauf": 3})
 
+const firebaseConfig = {
+    apiKey: "DEIN_API_KEY",
+    authDomain: "DEIN_PROJEKT.firebaseapp.com",
+    databaseURL: "https://DEIN_PROJEKT.firebaseio.com",
+    projectId: "DEIN_PROJEKT",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+function speichereDatenOnline() {
+    db.ref("einkaufsliste").set(einkaufsliste);
+}
+
+function ladeDatenOnline() {
+    db.ref("einkaufsliste").on("value", (snapshot) => {
+        einkaufsliste = snapshot.val() || {};
+        navigate("einkaufsliste");
+    });
+}
+
 // Funktion zum Laden der gespeicherten Daten
 function ladeDaten() {
     const gespeicherteRezepte = localStorage.getItem("rezepte");
