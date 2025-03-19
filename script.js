@@ -292,6 +292,7 @@ function rezeptZurEinkaufslisteHinzufügen(rezeptName) {
         verwendeteRezepte[rezeptName] = (verwendeteRezepte[rezeptName] || 0) + 1;
         speichereEinkaufsliste(); // 🔹 Hier speichern wir nach jeder Änderung!
         zeigeBenachrichtigung(`"${rezeptName}" wurde zur Einkaufsliste hinzugefügt!`);
+        navigate('einkaufsliste');
     }
 }
 
@@ -366,19 +367,20 @@ async function aktualisiereEinkaufslisteNachLoeschen(rezeptName) {
         delete verwendeteRezepte[rezeptName];
         await speichereEinkaufsliste(); // 🔹 Auch Einkaufsliste aktualisieren!
         zeigeBenachrichtigung(`"${rezeptName}" wurde aus der Einkaufsliste entfernt!`);
+        navigate('einkaufsliste');
     }
 }
 
 // Einkaufsliste leeren + in Supabase speichern
-function einkaufslisteLeeren() {
-    if (!confirm("Bist du sicher, dass du die gesamte Einkaufsliste löschen möchtest?")) {
-        return;
-    }
-    einkaufsliste = {};
-    verwendeteRezepte = {};
-    speichereEinkaufsliste(); // 🔹 Auch hier Supabase speichern!
+async function einkaufslisteLeeren() {
+    if (!confirm("Bist du sicher, dass du die gesamte Einkaufsliste löschen möchtest?")) return;
+
+    await supabase.from('einkaufsliste_rezepte').delete().neq('id', 0); // ✅ Supabase leeren
+    verwendeteRezepte = {}; 
+    einkaufsliste = {};  
+
     zeigeBenachrichtigung("Die Einkaufsliste wurde geleert!");
-    navigate('einkaufsliste');
+    navigate('einkaufsliste'); 
 }
 
 // Einkaufsliste teilen (fix: Buttons nur einmal hinzufügen)
@@ -419,7 +421,8 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Supabase erfolgreich initialisiert:", supabase);
     
     ladeDaten(); // ⬅ Lade erst jetzt die Daten!
+    // Standard-Ansicht beim Start
+    navigate('rezepte');
 });
 
-// Standard-Ansicht beim Start
-navigate('rezepte');
+
