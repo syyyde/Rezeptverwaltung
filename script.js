@@ -3,9 +3,10 @@ let rezepte = []; // Liste aller Rezepte
 let einkaufsliste = {}; // Konsolidierte Einkaufsliste (nach Zutaten)
 let verwendeteRezepte = {}; // Verknüpfte Rezepte mit Anzahl (z. B. {"Nudelauflauf": 3})
 
-const supabaseUrl = "https://crlccetkaainclufdzqh.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybGNjZXRrYWFpbmNsdWZkenFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzODcxODIsImV4cCI6MjA1Nzk2MzE4Mn0.u8NCm4V_z_iQowm84uNn97BZK67fS7WNMx6ARA1m0Ks";
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+import { createClient } from '@supabase/supabase-js'
+const supabaseUrl = 'https://crlccetkaainclufdzqh.supabase.co'
+const supabaseKey = process.env.SUPABASE_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function ladeRezepte() {
     let { data, error } = await supabase.from('rezepte').select('*');
