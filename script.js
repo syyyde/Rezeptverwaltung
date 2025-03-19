@@ -412,7 +412,18 @@ function einkaufslisteTeilen() {
 }
 
 // Beim Laden der Seite die gespeicherten Daten abrufen
-ladeDaten();
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM geladen, initialisiere Supabase...");
+    
+    const supabaseUrl = "https://crlccetkaainclufdzqh.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybGNjZXRrYWFpbmNsdWZkenFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzODcxODIsImV4cCI6MjA1Nzk2MzE4Mn0.u8NCm4V_z_iQowm84uNn97BZK67fS7WNMx6ARA1m0Ks";
+    
+    window.supabase = supabase.createClient(supabaseUrl, supabaseKey); // ⬅ Supabase global setzen
+
+    console.log("Supabase erfolgreich initialisiert:", supabase);
+    
+    ladeDaten(); // ⬅ Lade erst jetzt die Daten!
+});
 
 // Standard-Ansicht beim Start
 navigate('rezepte');
