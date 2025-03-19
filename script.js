@@ -67,28 +67,35 @@ async function rezeptSpeichern(event) {
     navigate('rezepte');
 }
 
-// Rezept zur Einkaufsliste hinzufügen
 async function rezeptZurEinkaufslisteHinzufügen(rezeptName) {
     verwendeteRezepte[rezeptName] = (verwendeteRezepte[rezeptName] || 0) + 1;
-    await supabase.from('einkaufsliste_rezepte').upsert({ rezeptname: rezeptName, anzahl: verwendeteRezepte[rezeptName] });
-    
-    einkaufsliste = berechneEinkaufsliste(); // ✅ Einkaufsliste aktualisieren
+
+    await supabase
+        .from('einkaufsliste_rezepte')
+        .upsert({ rezeptname: rezeptName, anzahl: verwendeteRezepte[rezeptName] });
+
+    einkaufsliste = berechneEinkaufsliste(); 
     zeigeBenachrichtigung(`"${rezeptName}" wurde zur Einkaufsliste hinzugefügt!`);
+    navigate('einkaufsliste'); // 🔹 Ansicht aktualisieren
 }
 
 // Rezept aus Einkaufsliste entfernen
 async function rezeptAusEinkaufslisteEntfernen(rezeptName) {
     if (verwendeteRezepte[rezeptName]) {
         verwendeteRezepte[rezeptName] -= 1;
+
         if (verwendeteRezepte[rezeptName] <= 0) {
             delete verwendeteRezepte[rezeptName];
             await supabase.from('einkaufsliste_rezepte').delete().eq('rezeptname', rezeptName);
         } else {
-            await supabase.from('einkaufsliste_rezepte').update({ anzahl: verwendeteRezepte[rezeptName] }).eq('rezeptname', rezeptName);
+            await supabase.from('einkaufsliste_rezepte')
+                .update({ anzahl: verwendeteRezepte[rezeptName] })
+                .eq('rezeptname', rezeptName);
         }
-        
-        einkaufsliste = berechneEinkaufsliste(); // ✅ Einkaufsliste nach Entfernung aktualisieren
+
+        einkaufsliste = berechneEinkaufsliste();
         zeigeBenachrichtigung(`"${rezeptName}" wurde entfernt!`);
+        navigate('einkaufsliste'); // 🔹 Ansicht aktualisieren
     }
 }
 
