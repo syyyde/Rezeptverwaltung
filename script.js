@@ -285,48 +285,6 @@ async function rezeptAktualisieren(event, altesName) {
     }
 }
 
-// Funktion: Rezept zur Einkaufsliste hinzufügen
-function rezeptZurEinkaufslisteHinzufügen(rezeptName) {
-    const rezept = rezepte.find(r => r.name === rezeptName);
-    if (rezept) {
-        rezept.zutaten.forEach(zutat => {
-            if (einkaufsliste[zutat.name]) {
-                einkaufsliste[zutat.name].menge += zutat.menge;
-            } else {
-                einkaufsliste[zutat.name] = { menge: zutat.menge, einheit: zutat.einheit };
-            }
-        });
-        verwendeteRezepte[rezeptName] = (verwendeteRezepte[rezeptName] || 0) + 1;
-        speichereEinkaufsliste(); // 🔹 Hier speichern wir nach jeder Änderung!
-        zeigeBenachrichtigung(`"${rezeptName}" wurde zur Einkaufsliste hinzugefügt!`);
-        navigate('einkaufsliste');
-    }
-}
-
-// Funktion: Rezept aus der Einkaufsliste entfernen
-function rezeptAusEinkaufslisteEntfernen(rezeptName) {
-    if (verwendeteRezepte[rezeptName]) {
-        const rezept = rezepte.find(r => r.name === rezeptName);
-        if (rezept) {
-            rezept.zutaten.forEach(zutat => {
-                if (einkaufsliste[zutat.name]) {
-                    einkaufsliste[zutat.name].menge -= zutat.menge;
-                    if (einkaufsliste[zutat.name].menge <= 0) {
-                        delete einkaufsliste[zutat.name];
-                    }
-                }
-            });
-        }
-        verwendeteRezepte[rezeptName] -= 1;
-        if (verwendeteRezepte[rezeptName] <= 0) {
-            delete verwendeteRezepte[rezeptName];
-        }
-        speichereEinkaufsliste(); // 🔹 Speichern nicht vergessen!
-        zeigeBenachrichtigung(`"${rezeptName}" wurde aus der Einkaufsliste entfernt!`);
-        navigate('einkaufsliste');
-    }
-}
-
 // Funktion: Zutat als gekauft markieren
 function markiereZutat(name) {
     const checkbox = document.getElementById(`check-${name}`);
@@ -372,7 +330,6 @@ async function aktualisiereEinkaufslisteNachLoeschen(rezeptName) {
             });
         }
         delete verwendeteRezepte[rezeptName];
-        await speichereEinkaufsliste(); // 🔹 Auch Einkaufsliste aktualisieren!
         zeigeBenachrichtigung(`"${rezeptName}" wurde aus der Einkaufsliste entfernt!`);
         navigate('einkaufsliste');
     }
