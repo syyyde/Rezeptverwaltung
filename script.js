@@ -3,26 +3,42 @@ let rezepte = []; // Liste aller Rezepte
 let einkaufsliste = {}; // Konsolidierte Einkaufsliste (nach Zutaten)
 let verwendeteRezepte = {}; // Verknüpfte Rezepte mit Anzahl (z. B. {"Nudelauflauf": 3})
 
-const firebaseConfig = {
-    apiKey: "DEIN_API_KEY",
-    authDomain: "rezeptverwaltung-55b10.firebaseapp.com",
-    databaseURL: "https://rezeptverwaltung-55b10-default-rtdb.europe-west1.firebasedatabase.app/",
-    projectId: "rezeptverwaltung-55b10",
-};
+const supabaseUrl = "https://crlccetkaainclufdzqh.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybGNjZXRrYWFpbmNsdWZkenFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzODcxODIsImV4cCI6MjA1Nzk2MzE4Mn0.u8NCm4V_z_iQowm84uNn97BZK67fS7WNMx6ARA1m0Ks";
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-function speichereDatenOnline() {
-    db.ref("einkaufsliste").set(einkaufsliste);
+// Einkaufsliste aus der Datenbank laden
+async function ladeEinkaufsliste() {
+    let { data, error } = await supabase.from('einkaufsliste').select('*');
+    if (error) console.error("Fehler beim Laden:", error);
+    else einkaufsliste = data.reduce((acc, item) => {
+        acc[item.name] = { menge: item.menge, einheit: item.einheit };
+        return acc;
+    }, {});
+    navigate('einkaufsliste');
 }
 
-function ladeDatenOnline() {
-    db.ref("einkaufsliste").on("value", (snapshot) => {
-        einkaufsliste = snapshot.val() || {};
-        navigate("einkaufsliste");
-    });
+// Einkaufsliste speichern
+async function speichereEinkaufsliste() {
+    await supabase.from('einkaufsliste').delete().neq('id', 0); // Alte Liste löschen
+    const daten = Object.entries(einkaufsliste).map(([name, details]) => ({
+        name,
+        menge: details.menge,
+        einheit: details.einheit
+    }));
+    await supabase.from('einkaufsliste').insert(daten);
 }
+
+// Funktion mit "Einkaufsliste leeren"-Button verknüpfen
+async function einkaufslisteLeeren() {
+    if (!confirm("Bist du sicher, dass du die gesamte Einkaufsliste löschen möchtest?")) return;
+    await supabase.from('einkaufsliste').delete().neq('id', 0);
+    einkaufsliste = {};
+    speichereDaten();
+    zeigeBenachrichtigung("Die Einkaufsliste wurde geleert!");
+    navigate('einkaufsliste');
+}
+
 
 // Funktion zum Laden der gespeicherten Daten
 function ladeDaten() {
