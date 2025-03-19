@@ -76,7 +76,7 @@ async function rezeptZurEinkaufslisteHinzufügen(rezeptName) {
 
     einkaufsliste = berechneEinkaufsliste(); 
     zeigeBenachrichtigung(`"${rezeptName}" wurde zur Einkaufsliste hinzugefügt!`);
-    navigate('einkaufsliste'); // 🔹 Ansicht aktualisieren
+    navigate('rezepte'); // 🔹 Ansicht aktualisieren
 }
 
 // Rezept aus Einkaufsliste entfernen
