@@ -241,28 +241,30 @@ function rezeptZurEinkaufslisteHinzufügen(rezeptName) {
             }
         });
         verwendeteRezepte[rezeptName] = (verwendeteRezepte[rezeptName] || 0) + 1;
-        speichereDaten();
+        speichereEinkaufsliste(); // 🔹 Hier speichern wir nach jeder Änderung!
         zeigeBenachrichtigung(`"${rezeptName}" wurde zur Einkaufsliste hinzugefügt!`);
     }
 }
 
 // Funktion: Rezept aus der Einkaufsliste entfernen
 function rezeptAusEinkaufslisteEntfernen(rezeptName) {
-    const rezept = rezepte.find(r => r.name === rezeptName);
-    if (rezept && verwendeteRezepte[rezeptName]) {
-        rezept.zutaten.forEach(zutat => {
-            if (einkaufsliste[zutat.name]) {
-                einkaufsliste[zutat.name].menge -= zutat.menge;
-                if (einkaufsliste[zutat.name].menge <= 0) {
-                    delete einkaufsliste[zutat.name];
+    if (verwendeteRezepte[rezeptName]) {
+        const rezept = rezepte.find(r => r.name === rezeptName);
+        if (rezept) {
+            rezept.zutaten.forEach(zutat => {
+                if (einkaufsliste[zutat.name]) {
+                    einkaufsliste[zutat.name].menge -= zutat.menge;
+                    if (einkaufsliste[zutat.name].menge <= 0) {
+                        delete einkaufsliste[zutat.name];
+                    }
                 }
-            }
-        });
+            });
+        }
         verwendeteRezepte[rezeptName] -= 1;
         if (verwendeteRezepte[rezeptName] <= 0) {
             delete verwendeteRezepte[rezeptName];
         }
-        speichereDaten();
+        speichereEinkaufsliste(); // 🔹 Speichern nicht vergessen!
         zeigeBenachrichtigung(`"${rezeptName}" wurde aus der Einkaufsliste entfernt!`);
         navigate('einkaufsliste');
     }
@@ -283,20 +285,23 @@ function markiereZutat(name) {
 // Funktion: Rezept löschen
 function rezeptLöschen(rezeptName) {
     if (!confirm(`Bist du sicher, dass du "${rezeptName}" löschen möchtest?`)) {
-        return; // Abbrechen, wenn der Nutzer "Abbrechen" klickt
+        return;
     }
 
+    // 🔹 Einkaufsliste vor dem Löschen des Rezepts aktualisieren
+    aktualisiereEinkaufslisteNachLoeschen(rezeptName);
+
+    // Rezept aus der Liste entfernen
     const index = rezepte.findIndex(r => r.name === rezeptName);
     if (index >= 0) {
         rezepte.splice(index, 1);
-        // Einkaufsliste aktualisieren
-        aktualisiereEinkaufslisteNachLoeschen(rezeptName);
         speichereDaten();
         zeigeBenachrichtigung(`"${rezeptName}" wurde gelöscht!`);
         navigate('rezepte');
     }
 }
 
+// Einkaufsliste nach Rezept-Löschung aktualisieren + in Supabase speichern
 function aktualisiereEinkaufslisteNachLoeschen(rezeptName) {
     if (verwendeteRezepte[rezeptName]) {
         const rezept = rezepte.find(r => r.name === rezeptName);
@@ -311,22 +316,24 @@ function aktualisiereEinkaufslisteNachLoeschen(rezeptName) {
             });
         }
         delete verwendeteRezepte[rezeptName];
-        speichereDaten();
+        speichereEinkaufsliste(); // 🔹 Supabase aktualisieren!
         zeigeBenachrichtigung(`"${rezeptName}" wurde auch aus der Einkaufsliste entfernt!`);
     }
 }
 
+// Einkaufsliste leeren + in Supabase speichern
 function einkaufslisteLeeren() {
     if (!confirm("Bist du sicher, dass du die gesamte Einkaufsliste löschen möchtest?")) {
         return;
     }
     einkaufsliste = {};
     verwendeteRezepte = {};
-    speichereDaten();
+    speichereEinkaufsliste(); // 🔹 Auch hier Supabase speichern!
     zeigeBenachrichtigung("Die Einkaufsliste wurde geleert!");
     navigate('einkaufsliste');
 }
 
+// Einkaufsliste teilen (fix: Buttons nur einmal hinzufügen)
 function einkaufslisteTeilen() {
     let text = "🛒 Meine Einkaufsliste:\n\n";
     
@@ -338,13 +345,18 @@ function einkaufslisteTeilen() {
     const whatsappLink = `https://api.whatsapp.com/send?text=${encodedText}`;
     const mailLink = `mailto:?subject=Meine Einkaufsliste&body=${encodedText}`;
 
-    // Einfache Buttons zum Teilen
-    const shareOptions = `
-        <button onclick="window.open('${whatsappLink}', '_blank')">📱 WhatsApp</button>
-        <button onclick="window.open('${mailLink}', '_blank')">📧 E-Mail</button>
-    `;
-    
-    document.getElementById('content').innerHTML += `<div class="share-box">${shareOptions}</div>`;
+    // 🔹 Verhindern, dass die Buttons mehrfach hinzugefügt werden
+    let shareBox = document.getElementById('share-box');
+    if (!shareBox) {
+        shareBox = document.createElement('div');
+        shareBox.id = 'share-box';
+        shareBox.className = 'share-box';
+        shareBox.innerHTML = `
+            <button onclick="window.open('${whatsappLink}', '_blank')">📱 WhatsApp</button>
+            <button onclick="window.open('${mailLink}', '_blank')">📧 E-Mail</button>
+        `;
+        document.getElementById('content').appendChild(shareBox);
+    }
 }
 
 // Beim Laden der Seite die gespeicherten Daten abrufen
