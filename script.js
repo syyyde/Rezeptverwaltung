@@ -5,9 +5,9 @@ let verwendeteRezepte = {}; // Verknüpfte Rezepte mit Anzahl (z. B. {"Nudelaufl
 
 const firebaseConfig = {
     apiKey: "DEIN_API_KEY",
-    authDomain: "DEIN_PROJEKT.firebaseapp.com",
-    databaseURL: "https://DEIN_PROJEKT.firebaseio.com",
-    projectId: "DEIN_PROJEKT",
+    authDomain: "rezeptverwaltung-55b10.firebaseapp.com",
+    databaseURL: "https://rezeptverwaltung-55b10-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "rezeptverwaltung-55b10",
 };
 
 firebase.initializeApp(firebaseConfig);
