@@ -10,17 +10,39 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 async function ladeRezepte() {
     let { data, error } = await supabase.from('rezepte').select('*');
     if (error) console.error("Fehler beim Laden der Rezepte:", error);
-    else rezepte = data || []; // Falls keine Daten vorhanden, leere Liste setzen
+    else rezepte = data || []; // JSON wird direkt als Objekt geladen
 }
 
 async function speichereRezepte() {
     await supabase.from('rezepte').delete().neq('id', 0); // Alle alten Rezepte löschen
     const daten = rezepte.map(rezept => ({
         name: rezept.name,
-        zutaten: JSON.stringify(rezept.zutaten), // Zutaten als String speichern
+        zutaten: rezept.zutaten, // Kein JSON.stringify() mehr nötig
         anleitung: rezept.anleitung
     }));
     await supabase.from('rezepte').insert(daten);
+}
+
+async function rezeptSpeichern(event) {
+    event.preventDefault();
+    const rezeptName = document.getElementById('rezept-name').value;
+    const zutatenText = document.getElementById('zutaten').value;
+    const anleitung = document.getElementById('anleitung').value;
+
+    const zutaten = zutatenText.split(',').map(item => {
+        const [name, menge, einheit] = item.split(':').map(el => el.trim());
+        return { name, menge: parseFloat(menge), einheit };
+    });
+
+    rezepte.push({
+        name: rezeptName,
+        zutaten, // JSON direkt speichern
+        anleitung
+    });
+
+    await speichereRezepte();
+    zeigeBenachrichtigung(`"${rezeptName}" wurde hinzugefügt!`);
+    navigate('rezepte');
 }
 
 // Einkaufsliste aus der Datenbank laden
