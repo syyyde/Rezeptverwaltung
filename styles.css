@@ -1,0 +1,334 @@
+/* Grundlegendes Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f9f9f9;
+    color: #333;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background-color: #007bff;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+nav button {
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #0056b3;
+    color: white;
+    cursor: pointer;
+}
+
+nav button:hover {
+    background-color: #003f7f;
+}
+
+main {
+    flex: 1;
+    padding: 2rem;
+}
+
+footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.rezepte-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rezept-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem; /* Größere Innenabstände für eine Box-Optik */
+    border: 1px solid #ddd;
+    border-radius: 10px; /* Runde Ecken */
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Leichte Schatten für 3D-Effekt */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.rezept-item:hover {
+    background-color: #f0f0f0; /* Hintergrund etwas heller beim Hover */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Intensiverer Schatten beim Hover */
+}
+
+.rezept-name {
+    font-size: 1.2rem; /* Etwas größer für die Rezeptnamen */
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+}
+
+.add-button,
+.remove-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+.add-button:hover,
+.remove-button:hover {
+    background-color: #0056b3;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul li {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+}
+
+h3 {
+    margin-top: 2rem;
+    color: #555;
+}
+
+input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+/* Neues CSS für das Rezeptformular */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 600px; /* Optional: Begrenzung der Breite */
+    margin: 0; /* Zentrierung entfernt */
+}
+
+form label {
+    font-weight: bold;
+}
+
+form input,
+form textarea,
+form button {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 100%; /* Eingabefelder nehmen die volle Breite ein */
+    box-sizing: border-box;
+}
+
+form button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #0056b3;
+}
+
+#rezept-formular {
+    text-align: left; /* Texte und Felder linksbündig ausrichten */
+    padding-left: 0; /* Links beginnen */
+}
+
+/* Stil für die Aktion-Buttons in der Detailansicht */
+button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Stil für die hinzugefügten Rezepte in der Einkaufsliste */
+ul li {
+    display: flex;
+    justify-content: space-between; /* Elemente verteilen sich auf die Zeilen-Enden */
+    align-items: center;
+}
+
+.remove-button {
+    margin-left: auto; /* Knopf wird ans rechte Ende geschoben */
+}
+
+.delete-button {
+    padding: 0.5rem 1rem;
+    background-color: #ff4d4d; /* Rotes Design für "Löschen" */
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+    background-color: #cc0000;
+}
+
+/* Zutaten und Checkbox */
+ul li {
+    display: flex;
+    justify-content: space-between; /* Verteilt Zutat und Checkbox */
+    align-items: center;
+}
+
+/* Abstand zwischen Zutat und Checkbox */
+ul li input[type="checkbox"] {
+    margin-left: 1rem;
+}
+
+/* Bearbeiten- und Löschen-Buttons */
+button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.delete-button {
+    background-color: #ff4d4d; /* Rotes Design für "Löschen" */
+}
+
+.delete-button:hover {
+    background-color: #cc0000;
+}
+
+/* Checkbox Styling */
+input[type="checkbox"] {
+    appearance: none; /* Standard-Checkbox ausblenden */
+    width: 20px;
+    height: 20px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    background-color: white;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Wenn Checkbox angeklickt wurde */
+input[type="checkbox"]:checked {
+    background-color: #007bff;
+    border-color: #0056b3;
+}
+
+/* Haken hinzufügen */
+input[type="checkbox"]::before {
+    content: "✔";
+    font-size: 16px;
+    color: white;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+
+/* Wenn Checkbox angehakt ist, wird der Haken sichtbar */
+input[type="checkbox"]:checked::before {
+    opacity: 1;
+}
+
+.checked {
+    color: #aaa; /* Text wird grau dargestellt */
+    text-decoration: line-through; /* Durchgestrichen für visuelle Markierung */
+}
+
+#toast-container {
+    position: fixed;
+    bottom: 80px; /* Abstand vom unteren Rand (passt sich dem Footer an) */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.toast {
+    background-color: rgba(0, 123, 255, 0.9); /* Blau mit leichter Transparenz */
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    opacity: 1;
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Falls mehrere Benachrichtigungen gleichzeitig kommen, stapeln sie sich */
+.toast + .toast {
+    margin-top: 5px;
+}
+
+/* Wenn ausgeblendet */
+.toast.fade-out {
+    opacity: 0;
+    transform: translateY(10px); /* Sanftes Nach-unten-Gleiten */
+}
+
+.share-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 0,5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.share-button:hover {
+    background-color: #218838;
+}
+
+.share-box {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
