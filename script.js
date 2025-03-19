@@ -7,6 +7,22 @@ const supabaseUrl = "https://crlccetkaainclufdzqh.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybGNjZXRrYWFpbmNsdWZkenFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzODcxODIsImV4cCI6MjA1Nzk2MzE4Mn0.u8NCm4V_z_iQowm84uNn97BZK67fS7WNMx6ARA1m0Ks";
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+async function ladeRezepte() {
+    let { data, error } = await supabase.from('rezepte').select('*');
+    if (error) console.error("Fehler beim Laden der Rezepte:", error);
+    else rezepte = data || []; // Falls keine Daten vorhanden, leere Liste setzen
+}
+
+async function speichereRezepte() {
+    await supabase.from('rezepte').delete().neq('id', 0); // Alle alten Rezepte löschen
+    const daten = rezepte.map(rezept => ({
+        name: rezept.name,
+        zutaten: JSON.stringify(rezept.zutaten), // Zutaten als String speichern
+        anleitung: rezept.anleitung
+    }));
+    await supabase.from('rezepte').insert(daten);
+}
+
 // Einkaufsliste aus der Datenbank laden
 async function ladeEinkaufsliste() {
     let { data, error } = await supabase.from('einkaufsliste').select('*');
@@ -39,16 +55,11 @@ async function einkaufslisteLeeren() {
     navigate('einkaufsliste');
 }
 
-
 // Funktion zum Laden der gespeicherten Daten
-function ladeDaten() {
-    const gespeicherteRezepte = localStorage.getItem("rezepte");
-    const gespeicherteEinkaufsliste = localStorage.getItem("einkaufsliste");
-    const gespeicherteVerwendeteRezepte = localStorage.getItem("verwendeteRezepte");
-
-    rezepte = gespeicherteRezepte ? JSON.parse(gespeicherteRezepte) : [];
-    einkaufsliste = gespeicherteEinkaufsliste ? JSON.parse(gespeicherteEinkaufsliste) : {};
-    verwendeteRezepte = gespeicherteVerwendeteRezepte ? JSON.parse(gespeicherteVerwendeteRezepte) : {};
+async function ladeDaten() {
+    await ladeRezepte();
+    await ladeEinkaufsliste();
+    navigate('rezepte');
 }
 
 // Funktion zum Speichern der Daten
@@ -179,7 +190,7 @@ function rezeptBearbeiten(rezeptName) {
 }
 
 // Funktion: Rezept speichern
-function rezeptSpeichern(event) {
+async function rezeptSpeichern(event) {
     event.preventDefault();
     const rezeptName = document.getElementById('rezept-name').value;
     const zutatenText = document.getElementById('zutaten').value;
@@ -190,22 +201,20 @@ function rezeptSpeichern(event) {
         return { name, menge: parseFloat(menge), einheit };
     });
 
-    // Zeilenumbrüche in der Anleitung korrekt speichern
     rezepte.push({
         name: rezeptName,
         zutaten,
-        anleitung: encodeURIComponent(anleitung) // Speichert Zeilenumbrüche sicher
+        anleitung: encodeURIComponent(anleitung)
     });
 
-    speichereDaten();
+    await speichereRezepte();
     zeigeBenachrichtigung(`"${rezeptName}" wurde hinzugefügt!`);
     navigate('rezepte');
 }
 
 // Funktion: Rezept aktualisieren (nach dem Bearbeiten speichern)
-function rezeptAktualisieren(event, altesName) {
+async function rezeptAktualisieren(event, altesName) {
     event.preventDefault();
-
     const rezeptName = document.getElementById('rezept-name').value;
     const zutatenText = document.getElementById('zutaten').value;
     const anleitung = document.getElementById('anleitung').value;
@@ -215,15 +224,14 @@ function rezeptAktualisieren(event, altesName) {
         return { name, menge: parseFloat(menge), einheit };
     });
 
-    // Rezept in der Liste aktualisieren
     const rezeptIndex = rezepte.findIndex(r => r.name === altesName);
     if (rezeptIndex >= 0) {
         rezepte[rezeptIndex] = {
             name: rezeptName,
             zutaten,
-            anleitung: encodeURIComponent(anleitung) // Zeilenumbrüche sicher speichern
+            anleitung: encodeURIComponent(anleitung)
         };
-        speichereDaten();
+        await speichereRezepte();
         zeigeBenachrichtigung(`"${altesName}" wurde aktualisiert!`);
         navigate('rezepte');
     }
@@ -283,26 +291,25 @@ function markiereZutat(name) {
 }
 
 // Funktion: Rezept löschen
-function rezeptLöschen(rezeptName) {
+async function rezeptLöschen(rezeptName) {
     if (!confirm(`Bist du sicher, dass du "${rezeptName}" löschen möchtest?`)) {
         return;
     }
 
-    // 🔹 Einkaufsliste vor dem Löschen des Rezepts aktualisieren
+    // Einkaufsliste vor dem Löschen des Rezepts aktualisieren
     aktualisiereEinkaufslisteNachLoeschen(rezeptName);
 
-    // Rezept aus der Liste entfernen
     const index = rezepte.findIndex(r => r.name === rezeptName);
     if (index >= 0) {
         rezepte.splice(index, 1);
-        speichereDaten();
+        await speichereRezepte(); // 🔹 Jetzt auch in Supabase speichern!
         zeigeBenachrichtigung(`"${rezeptName}" wurde gelöscht!`);
         navigate('rezepte');
     }
 }
 
 // Einkaufsliste nach Rezept-Löschung aktualisieren + in Supabase speichern
-function aktualisiereEinkaufslisteNachLoeschen(rezeptName) {
+async function aktualisiereEinkaufslisteNachLoeschen(rezeptName) {
     if (verwendeteRezepte[rezeptName]) {
         const rezept = rezepte.find(r => r.name === rezeptName);
         if (rezept) {
@@ -316,8 +323,8 @@ function aktualisiereEinkaufslisteNachLoeschen(rezeptName) {
             });
         }
         delete verwendeteRezepte[rezeptName];
-        speichereEinkaufsliste(); // 🔹 Supabase aktualisieren!
-        zeigeBenachrichtigung(`"${rezeptName}" wurde auch aus der Einkaufsliste entfernt!`);
+        await speichereEinkaufsliste(); // 🔹 Auch Einkaufsliste aktualisieren!
+        zeigeBenachrichtigung(`"${rezeptName}" wurde aus der Einkaufsliste entfernt!`);
     }
 }
 
