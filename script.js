@@ -378,18 +378,6 @@ async function aktualisiereEinkaufslisteNachLoeschen(rezeptName) {
     }
 }
 
-// Einkaufsliste leeren + in Supabase speichern
-async function einkaufslisteLeeren() {
-    if (!confirm("Bist du sicher, dass du die gesamte Einkaufsliste löschen möchtest?")) return;
-
-    await supabase.from('einkaufsliste_rezepte').delete().neq('id', 0); // ✅ Supabase leeren
-    verwendeteRezepte = {}; 
-    einkaufsliste = {};  
-
-    zeigeBenachrichtigung("Die Einkaufsliste wurde geleert!");
-    navigate('einkaufsliste'); 
-}
-
 // Einkaufsliste teilen (fix: Buttons nur einmal hinzufügen)
 function einkaufslisteTeilen() {
     let text = "🛒 Meine Einkaufsliste:\n\n";
