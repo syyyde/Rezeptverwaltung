@@ -1,3 +1,13 @@
+/*
+TODO:
+- einzelne Zutaten hinzufügen
+- Rezepte teilen
+*/
+
+
+
+
+
 // Globale Variablen für die Rezeptdatenbank, Einkaufsliste und verknüpfte Rezepte
 let rezepte = []; // Liste aller Rezepte
 let einkaufsliste = {}; // Konsolidierte Einkaufsliste (nach Zutaten)
